@@ -177,13 +177,17 @@ html, body {
   text-align: right; padding: 0 12px; border: 2px solid #ccc; border-radius: 6px;
   -webkit-appearance: none;
 }
-.chg-presets { margin-top: 8px; }
+.chg-presets { margin-top: 8px; font-size: 0; }   /* font-size:0 verhindert Zwischenraum-Umbruch */
+.chg-preset, .chg-spacer {
+  display: inline-block; width: 31.33%; margin: 1%; height: 44px;
+  vertical-align: top; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
 .chg-preset {
-  display: inline-block; width: 23%; margin: 1%; height: 44px;
   background: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px;
   font-size: 16px; font-weight: bold; cursor: pointer; -webkit-appearance: none; padding: 0;
 }
 .chg-preset:active { background: #d6dbe0; }
+.chg-spacer { background: transparent; }          /* Platzhalter, damit C unter +50 steht */
 .chg-clear { background: #f3d6d6; }
 .chg-result {
   margin-top: 6px; padding: 14px; border-radius: 8px; text-align: center;
@@ -245,6 +249,7 @@ html, body {
           <button class="chg-preset" type="button" onclick="addReceived(10)">+10</button>
           <button class="chg-preset" type="button" onclick="addReceived(20)">+20</button>
           <button class="chg-preset" type="button" onclick="addReceived(50)">+50</button>
+          <span class="chg-spacer"></span>
           <button class="chg-preset" type="button" onclick="addReceived(100)">+100</button>
           <button class="chg-preset chg-clear" type="button" onclick="setReceived('')">C</button>
         </div>
