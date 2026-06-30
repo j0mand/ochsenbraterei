@@ -335,7 +335,9 @@ function overridePfand() {
 }
 function neu() {
   for (var i = 0; i < PRODUCTS.length; i++) { PRODUCTS[i].Quantity = 0; }
-  depositVisibility = false; overrideButtonActivity = true; render();
+  depositVisibility = false; overrideButtonActivity = true;
+  document.getElementById("chgReceived").value = "";   /* Wechselgeld-Eingabe zuruecksetzen */
+  render();
 }
 
 /* =====================  RENDERING (Produktliste)  ===================== */
