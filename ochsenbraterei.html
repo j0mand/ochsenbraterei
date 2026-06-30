@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Vereinskasse Seehasenfest – V2 (Bon-Overlay)</title>
+<style>
+* { -webkit-box-sizing: border-box; box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333; background: #ffffff;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---- Header ---- */
+#header {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 72px; background: #ffffff;
+  border-bottom: 1px solid #dddddd; z-index: 100;
+  padding: 9px 12px;
+}
+.hbtn {
+  float: right; height: 54px;
+  background: #6b7785; color: #ffffff; border: none;
+  font-size: 17px; font-weight: bold; border-radius: 6px;
+  cursor: pointer; -webkit-appearance: none; padding: 0 14px; margin-left: 8px;
+}
+.hbtn:active { background: #586271; }
+#btnNeu  { width: 90px; padding: 0; }
+#btnBons { background: #2f8f2f; }
+#btnBons:active { background: #246e24; }
+#btnChange { background: #b8860b; }
+#btnChange:active { background: #946d09; }
+
+/* ---- Main ---- */
+#main {
+  position: absolute; top: 72px; bottom: 64px; left: 0; right: 0;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px; text-align: center;
+}
+.column {
+  display: inline-block; vertical-align: top;
+  width: 530px; max-width: 100%; margin: 0 8px; text-align: left;
+}
+@media screen and (max-width: 1140px) {
+  .column { display: block; margin: 0 auto; }
+}
+
+/* ---- Kategorie ---- */
+.category { background: #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 14px; }
+.category-title {
+  color: #6b7785; font-weight: bold; font-size: 15px;
+  letter-spacing: 1px; padding: 4px 6px 10px 6px;
+}
+
+/* ---- Zeile ---- */
+.row {
+  display: table; width: 100%; table-layout: fixed;
+  background: #fbfbfb; border: 1px solid #e0e0e0; border-radius: 6px;
+  margin-bottom: 8px; padding: 6px;
+}
+.cell { display: table-cell; vertical-align: middle; }
+
+.c-title { width: 160px; font-size: 16px; line-height: 1.15;
+  word-wrap: break-word; overflow-wrap: break-word; padding-left: 4px; }
+.c-price { width: 40px; font-size: 14px; color: #888; text-align: right; padding-right: 6px; }
+.c-btn   { width: 64px; text-align: center; }
+.c-btn.right { text-align: right; }
+.c-btn.left  { text-align: left; }
+.c-qty   { width: 35px; text-align: center; font-size: 16px; font-weight: bold; }
+.c-coupon { width: 138px; text-align: center; padding-left: 8px; }
+
+.btn-pm {
+  background: #6b7785; color: #ffffff; border: none;
+  width: 60px; height: 60px; font-size: 28px; font-weight: bold;
+  border-radius: 6px; cursor: pointer; -webkit-appearance: none; padding: 0; line-height: 60px;
+}
+.btn-pm:active { background: #586271; }
+.btn-hidden { visibility: hidden; }
+
+.coupon {
+  display: table-cell; width: 130px; height: 60px;
+  border: 1px dashed #cccccc; border-radius: 6px;
+  text-align: center; vertical-align: middle;
+  font-size: 14px; color: #555; padding: 4px;
+  word-wrap: break-word; overflow-wrap: break-word;
+}
+.placeholder-circle {
+  display: inline-block; width: 44px; height: 44px; border-radius: 50%;
+  background: #2f8f2f; vertical-align: middle;
+}
+
+.btn-override {
+  display: block; width: 100%;
+  background: #6b7785; color: #ffffff; border: none;
+  font-size: 15px; font-weight: bold; letter-spacing: 1px;
+  padding: 14px; border-radius: 6px; margin-top: 8px;
+  cursor: pointer; -webkit-appearance: none;
+}
+.btn-override:active { background: #586271; }
+
+/* ---- Footer ---- */
+#footer {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+  background: #ffffff; border-top: 1px solid #dddddd; z-index: 100;
+}
+#footer .inner { display: table; width: 100%; height: 64px; padding: 0 18px; }
+#footerLabel, #footerTotal {
+  display: table-cell; vertical-align: middle;
+  font-size: 20px; font-weight: bold; text-align: center; white-space: nowrap;
+}
+#footerLabel { width: 35%; }
+
+/* ---- Schmale Screens: Bon-Spalte ausblenden ----
+   Die verbliebenen Elemente verteilen sich auf die volle Zeilenbreite:
+   Titel nimmt den Restplatz, "+" rueckt an den rechten Rand. */
+@media screen and (max-width: 640px) {
+  .c-coupon { display: none; }
+  .c-title  { width: auto; }
+}
+
+/* ---- Overlay (gemeinsam fuer Bons + Wechselgeld) ---- */
+.overlay {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.55); z-index: 200;
+}
+.overlay-panel {
+  position: absolute; top: 50%; left: 50%;
+  width: 90%; max-width: 460px;
+  background: #ffffff; border-radius: 10px; overflow: hidden;
+  -webkit-box-shadow: 0 6px 30px rgba(0,0,0,0.4); box-shadow: 0 6px 30px rgba(0,0,0,0.4);
+}
+.overlay-header {
+  color: #ffffff; padding: 14px 16px; font-size: 18px; font-weight: bold;
+}
+.overlay-header.bons   { background: #2f8f2f; }
+.overlay-header.change { background: #b8860b; }
+.overlay-close {
+  float: right; background: #ffffff; color: #444; border: none;
+  width: 32px; height: 32px; border-radius: 6px; font-size: 20px; font-weight: bold;
+  cursor: pointer; -webkit-appearance: none; padding: 0; line-height: 32px;
+}
+.overlay-body { padding: 12px 14px; overflow-y: auto; max-height: 64vh; -webkit-overflow-scrolling: touch; }
+
+/* Bon-Liste im Overlay: identische Bon-Darstellung wie in der Zeile.
+   Bons haben dieselbe feste Breite (130px) wie in der Normalansicht. */
+.bon-line { display: table; width: 100%; margin-bottom: 8px; }
+.bon-chip-cell { display: table-cell; vertical-align: middle; width: 130px; text-align: center; }
+.bon-chip {
+  display: table-cell; width: 130px; height: 56px;
+  border: 1px dashed #cccccc; border-radius: 6px;
+  text-align: center; vertical-align: middle;
+  font-size: 14px; color: #555; padding: 4px;
+  word-wrap: break-word; overflow-wrap: break-word;
+}
+/* Pfand-Kreis im Overlay: mit gut lesbarer Beschriftung */
+.pfand-circle {
+  display: inline-block; width: 56px; height: 56px; border-radius: 50%;
+  background: #2f8f2f; color: #ffffff;
+  font-size: 13px; font-weight: bold; line-height: 56px; text-align: center;
+}
+.bon-count {
+  display: table-cell; vertical-align: middle;
+  text-align: center; font-size: 26px; font-weight: bold; padding-left: 12px;
+}
+.bon-empty { color: #888; font-size: 15px; text-align: center; padding: 20px 0; }
+
+/* Wechselgeld-Overlay */
+.chg-row { margin-bottom: 14px; }
+.chg-label { font-size: 15px; color: #666; margin-bottom: 4px; }
+.chg-pay { font-size: 24px; font-weight: bold; }
+#chgReceived {
+  width: 100%; height: 54px; font-size: 24px; font-weight: bold;
+  text-align: right; padding: 0 12px; border: 2px solid #ccc; border-radius: 6px;
+  -webkit-appearance: none;
+}
+.chg-presets { margin-top: 8px; }
+.chg-preset {
+  display: inline-block; width: 23%; margin: 1%; height: 44px;
+  background: #e9ecef; color: #333; border: 1px solid #ccc; border-radius: 6px;
+  font-size: 16px; font-weight: bold; cursor: pointer; -webkit-appearance: none; padding: 0;
+}
+.chg-preset:active { background: #d6dbe0; }
+.chg-clear { background: #f3d6d6; }
+.chg-result {
+  margin-top: 6px; padding: 14px; border-radius: 8px; text-align: center;
+  font-size: 26px; font-weight: bold; background: #eaf5ea; color: #2f7d2f;
+}
+.chg-result.short { background: #f7e6e6; color: #b23b3b; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <button id="btnNeu"    class="hbtn" type="button">&#8634; NEU</button>
+  <button id="btnChange" class="hbtn" type="button">WECHSELGELD</button>
+  <button id="btnBons"   class="hbtn" type="button">BONS</button>
+</div>
+
+<div id="main">
+  <div id="leftColumn" class="column left"></div>
+  <div id="rightColumn" class="column right"></div>
+</div>
+
+<div id="footer">
+  <div class="inner">
+    <span id="footerLabel">TOTAL</span>
+    <span id="footerTotal">0&euro; (inkl. 0&euro; Pfand)</span>
+  </div>
+</div>
+
+<!-- Bon-Ausgabe Overlay -->
+<div id="overlayBons" class="overlay">
+  <div id="panelBons" class="overlay-panel">
+    <div class="overlay-header bons">
+      <button class="overlay-close" type="button" onclick="closeOverlay('overlayBons')">&times;</button>
+      Bon-Ausgabe
+    </div>
+    <div id="bonsBody" class="overlay-body"></div>
+  </div>
+</div>
+
+<!-- Wechselgeld Overlay -->
+<div id="overlayChange" class="overlay">
+  <div id="panelChange" class="overlay-panel">
+    <div class="overlay-header change">
+      <button class="overlay-close" type="button" onclick="closeOverlay('overlayChange')">&times;</button>
+      Wechselgeld
+    </div>
+    <div class="overlay-body">
+      <div class="chg-row">
+        <div class="chg-label">Zu zahlen</div>
+        <div class="chg-pay"><span id="chgTotal">0</span> &euro;</div>
+      </div>
+      <div class="chg-row">
+        <div class="chg-label">Erhalten (&euro;)</div>
+        <input id="chgReceived" type="number" inputmode="decimal" min="0" step="0.50" value="">
+        <div class="chg-presets">
+          <button class="chg-preset" type="button" onclick="addReceived(1)">+1</button>
+          <button class="chg-preset" type="button" onclick="addReceived(2)">+2</button>
+          <button class="chg-preset" type="button" onclick="addReceived(5)">+5</button>
+          <button class="chg-preset" type="button" onclick="addReceived(10)">+10</button>
+          <button class="chg-preset" type="button" onclick="addReceived(20)">+20</button>
+          <button class="chg-preset" type="button" onclick="addReceived(50)">+50</button>
+          <button class="chg-preset" type="button" onclick="addReceived(100)">+100</button>
+          <button class="chg-preset chg-clear" type="button" onclick="setReceived('')">C</button>
+        </div>
+      </div>
+      <div id="chgResult" class="chg-result">Rückgeld: 0 &euro;</div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+/* =====================  DATENMODELL  ===================== */
+var PFAND_ID = 99;
+
+var COUPONS = [
+  { CouponID: 1, Title: "GLAS WEIN",      Color: "#fbfbe0" },
+  { CouponID: 2, Title: "WEINSCHORLE",    Color: "#fbfbe0" },
+  { CouponID: 3, Title: "LILLET",         Color: "#fbfbe0" },
+  { CouponID: 4, Title: "FL. WEIN",       Color: "#acd4ee" },
+  { CouponID: 5, Title: "FL. WEIN TOP",   Color: "#aee0ae" },
+  { CouponID: 6, Title: "WASSER KLEIN",   Color: "#ffffff" },
+  { CouponID: 7, Title: "WASSER GROSS",   Color: "#ffffff" },
+  { CouponID: 8, Title: "ALKOHOLFREI",    Color: "#ffffff" },
+  { CouponID: 9, Title: "OCHS MIT ALLEM", Color: "#f0a030" },
+  { CouponID: 10, Title: "VESPERPLATTE",  Color: "#acd4ee" },
+  { CouponID: 11, Title: "PFAND GLAS",    Color: "#ffffff" },
+  { CouponID: 12, Title: "PFAND MANSCHETTE", Color: "#fbfbe0" },
+  { CouponID: 99, Title: "PFAND",         Color: "#ffffff" }   /* Sonderfall: gruener Kreis */
+];
+
+var PRODUCTS = [
+  { ProductID: 1,  Title: "Glas Wein",                     Price: 7,  CouponID: 1,  Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 2,  Title: "Weinschorle",                   Price: 6,  CouponID: 2,  Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 3,  Title: "Lillet",                        Price: 7,  CouponID: 3,  Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 4,  Title: "Seehas / Seegucker",            Price: 22, CouponID: 4,  Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 5,  Title: "Grauburgunder / Aufrichtig Rot", Price: 30, CouponID: 5, Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 6,  Title: "Wasser klein (0,5l)",           Price: 3,  CouponID: 6,  Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 7,  Title: "Wasser groß (1l)",         Price: 5,  CouponID: 7,  Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 8,  Title: "Apfelsaftschorle, Cola, Seezüngle", Price: 4, CouponID: 8, Category: "GETRÄNKE", Quantity: 0 },
+  { ProductID: 20, Title: "Ochs mit Kraut und Brot",       Price: 16, CouponID: 9,  Category: "SPEISEN",   Quantity: 0 },
+  { ProductID: 21, Title: "Vesperplatte",                  Price: 16, CouponID: 10, Category: "SPEISEN",   Quantity: 0 },
+  { ProductID: 30, Title: "Zusätzliches Glas",        Price: 0,  CouponID: 11, Category: "GESCHIRR",  Quantity: 0 },
+  { ProductID: 31, Title: "Kühlmanschette",           Price: 0,  CouponID: 12, Category: "GESCHIRR",  Quantity: 0 },
+  { ProductID: 99, Title: "Pfand",                         Price: 2,  CouponID: 99, Category: "PFAND",     Quantity: 0 }
+];
+
+var LEFT_CATEGORIES  = ["GETRÄNKE"];
+var RIGHT_CATEGORIES = ["SPEISEN", "GESCHIRR", "PFAND"];
+
+/* =====================  ZUSTAND  ===================== */
+var depositVisibility = false;
+var overrideButtonActivity = true;
+
+/* =====================  HELFER  ===================== */
+function getProductById(id) {
+  for (var i = 0; i < PRODUCTS.length; i++) { if (PRODUCTS[i].ProductID === id) { return PRODUCTS[i]; } }
+  return null;
+}
+function getCouponById(id) {
+  for (var i = 0; i < COUPONS.length; i++) { if (COUPONS[i].CouponID === id) { return COUPONS[i]; } }
+  return null;
+}
+function getCouponQuantity(couponId) {
+  var sum = 0;
+  for (var i = 0; i < PRODUCTS.length; i++) { if (PRODUCTS[i].CouponID === couponId) { sum += PRODUCTS[i].Quantity; } }
+  return sum;
+}
+function max0(n) { return n < 0 ? 0 : n; }
+
+/* =====================  AKTIONEN  ===================== */
+function plusProduct(id) {
+  var p = getProductById(id); if (!p) { return; }
+  p.Quantity++;
+  var pf = getProductById(PFAND_ID); if (pf) { pf.Quantity++; }
+  render();
+}
+function minusProduct(id) {
+  var p = getProductById(id); if (!p) { return; }
+  if (p.Quantity >= 1) {
+    p.Quantity--;
+    var pf = getProductById(PFAND_ID); if (pf) { pf.Quantity = max0(pf.Quantity - 1); }
+  }
+  render();
+}
+function plusPfand()  { var pf = getProductById(PFAND_ID); if (pf) { pf.Quantity++; } render(); }
+function minusPfand() { var pf = getProductById(PFAND_ID); if (pf) { pf.Quantity = max0(pf.Quantity - 1); } render(); }
+function overridePfand() {
+  if (!overrideButtonActivity) { return; }
+  depositVisibility = true; overrideButtonActivity = false; render();
+}
+function neu() {
+  for (var i = 0; i < PRODUCTS.length; i++) { PRODUCTS[i].Quantity = 0; }
+  depositVisibility = false; overrideButtonActivity = true; render();
+}
+
+/* =====================  RENDERING (Produktliste)  ===================== */
+function el(tag, cls) { var e = document.createElement(tag); if (cls) { e.className = cls; } return e; }
+
+function appendTitlePrice(row, p) {
+  var t = el("div", "cell c-title"); t.appendChild(document.createTextNode(p.Title)); row.appendChild(t);
+  var pr = el("div", "cell c-price"); pr.appendChild(document.createTextNode(p.Price + "€")); row.appendChild(pr);
+}
+function appendCoupon(row, couponId) {
+  var c = getCouponById(couponId);
+  var wrap = el("div", "cell c-coupon");
+  var box = el("div", "coupon");
+  if (c) { box.style.background = c.Color; box.appendChild(document.createTextNode(c.Title)); }
+  wrap.appendChild(box); row.appendChild(wrap);
+}
+function makeBtnCell(label, handler, hidden, align) {
+  var cell = el("div", "cell c-btn" + (align ? " " + align : ""));
+  var b = el("button", "btn-pm" + (hidden ? " btn-hidden" : ""));
+  b.type = "button"; b.innerHTML = label; b.onclick = handler;
+  cell.appendChild(b); return cell;
+}
+function buildProductRow(p) {
+  var row = el("div", "row");
+  appendTitlePrice(row, p);
+  /* "-" linksbuendig, "+" rechtsbuendig: wenn der Bon ausgeblendet ist,
+     rueckt "+" damit an den rechten Containerrand. */
+  row.appendChild(makeBtnCell("&#8722;", (function(id){return function(){minusProduct(id);};})(p.ProductID), false, "left"));
+  var q = el("div", "cell c-qty"); q.appendChild(document.createTextNode(String(p.Quantity))); row.appendChild(q);
+  row.appendChild(makeBtnCell("+", (function(id){return function(){plusProduct(id);};})(p.ProductID), false, "right"));
+  appendCoupon(row, p.CouponID);
+  return row;
+}
+function buildPfandRow(p) {
+  var row = el("div", "row");
+  appendTitlePrice(row, p);
+  row.appendChild(makeBtnCell("&#8722;", function(){minusPfand();}, !depositVisibility, "left"));
+  var q = el("div", "cell c-qty"); q.appendChild(document.createTextNode(String(p.Quantity))); row.appendChild(q);
+  row.appendChild(makeBtnCell("+", function(){plusPfand();}, !depositVisibility, "right"));
+  var wrap = el("div", "cell c-coupon");
+  wrap.appendChild(el("span", "placeholder-circle")); row.appendChild(wrap);
+  return row;
+}
+function buildCategory(catName) {
+  var box = el("div", "category");
+  var t = el("div", "category-title"); t.appendChild(document.createTextNode(catName)); box.appendChild(t);
+  for (var i = 0; i < PRODUCTS.length; i++) {
+    var p = PRODUCTS[i]; if (p.Category !== catName) { continue; }
+    box.appendChild(p.ProductID === PFAND_ID ? buildPfandRow(p) : buildProductRow(p));
+  }
+  if (catName === "PFAND") {
+    var ov = el("button", "btn-override"); ov.type = "button";
+    ov.appendChild(document.createTextNode("ÜBERSCHREIBEN"));
+    if (!overrideButtonActivity) { ov.disabled = true; ov.style.opacity = "0.5"; }
+    ov.onclick = function(){ overridePfand(); };
+    box.appendChild(ov);
+  }
+  return box;
+}
+function renderColumn(id, cats) {
+  var c = document.getElementById(id); c.innerHTML = "";
+  for (var i = 0; i < cats.length; i++) { c.appendChild(buildCategory(cats[i])); }
+}
+function computeTotals() {
+  var total = 0, pfand = 0;
+  for (var i = 0; i < PRODUCTS.length; i++) {
+    var p = PRODUCTS[i], line = p.Quantity * p.Price; total += line;
+    if (p.ProductID === PFAND_ID) { pfand += line; }
+  }
+  return { total: total, pfand: pfand };
+}
+function renderFooter() {
+  var t = computeTotals();
+  document.getElementById("footerTotal").innerHTML = t.total + "€ (inkl. " + t.pfand + "€ Pfand)";
+}
+function render() {
+  renderColumn("leftColumn", LEFT_CATEGORIES);
+  renderColumn("rightColumn", RIGHT_CATEGORIES);
+  renderFooter();
+  if (isOpen("overlayBons"))   { renderBons(); }
+  if (isOpen("overlayChange")) { updateChange(); }
+}
+
+/* =====================  BON-OVERLAY  ===================== */
+function renderBons() {
+  var body = document.getElementById("bonsBody");
+  body.innerHTML = "";
+  var any = false;
+  for (var i = 0; i < COUPONS.length; i++) {
+    var c = COUPONS[i];
+    var qty = getCouponQuantity(c.CouponID);
+    if (qty <= 0) { continue; }
+    any = true;
+
+    var line = el("div", "bon-line");
+    var chipCell = el("div", "bon-chip-cell");
+
+    if (c.CouponID === PFAND_ID) {
+      /* Pfand: gruener Kreis mit Beschriftung "Pfand" */
+      var circle = el("span", "pfand-circle");
+      circle.appendChild(document.createTextNode("Pfand"));
+      chipCell.appendChild(circle);
+    } else {
+      var chip = el("div", "bon-chip");
+      chip.style.background = c.Color;
+      chip.appendChild(document.createTextNode(c.Title));
+      chipCell.appendChild(chip);
+    }
+
+    var cnt = el("div", "bon-count");
+    cnt.appendChild(document.createTextNode(String(qty)));
+
+    line.appendChild(chipCell);
+    line.appendChild(cnt);
+    body.appendChild(line);
+  }
+  if (!any) {
+    var empty = el("div", "bon-empty");
+    empty.appendChild(document.createTextNode("Keine Bons – noch nichts gebucht."));
+    body.appendChild(empty);
+  }
+}
+
+/* =====================  WECHSELGELD-OVERLAY  ===================== */
+function setReceived(v) {
+  document.getElementById("chgReceived").value = (v === "" ? "" : String(v));
+  updateChange();
+}
+function addReceived(v) {
+  var inp = document.getElementById("chgReceived");
+  var cur = parseFloat(inp.value);
+  if (isNaN(cur)) { cur = 0; }
+  inp.value = String(cur + v);
+  updateChange();
+}
+function updateChange() {
+  var total = computeTotals().total;
+  document.getElementById("chgTotal").innerHTML = String(total);
+
+  var rec = parseFloat(document.getElementById("chgReceived").value);
+  var res = document.getElementById("chgResult");
+
+  if (isNaN(rec) || document.getElementById("chgReceived").value === "") {
+    res.className = "chg-result";
+    res.innerHTML = "Rückgeld: 0 &euro;";
+    return;
+  }
+  var diff = rec - total;
+  /* auf 2 Nachkommastellen runden (Float-Sauberkeit) */
+  diff = Math.round(diff * 100) / 100;
+  if (diff >= 0) {
+    res.className = "chg-result";
+    res.innerHTML = "Rückgeld: " + formatEuro(diff) + " &euro;";
+  } else {
+    res.className = "chg-result short";
+    res.innerHTML = "Es fehlen: " + formatEuro(-diff) + " &euro;";
+  }
+}
+function formatEuro(n) {
+  /* ganze Zahlen ohne Nachkommastellen, sonst 2 Stellen mit Komma */
+  if (n === Math.floor(n)) { return String(n); }
+  return n.toFixed(2).replace(".", ",");
+}
+
+/* =====================  OVERLAY-STEUERUNG  ===================== */
+function isOpen(id) { return document.getElementById(id).style.display === "block"; }
+function positionPanel(panelId) {
+  var panel = document.getElementById(panelId);
+  panel.style.marginLeft = "-" + (panel.offsetWidth / 2) + "px";
+  panel.style.marginTop  = "-" + (panel.offsetHeight / 2) + "px";
+}
+function openOverlay(id, panelId, prep) {
+  if (prep) { prep(); }
+  document.getElementById(id).style.display = "block";
+  positionPanel(panelId);
+}
+function closeOverlay(id) { document.getElementById(id).style.display = "none"; }
+
+/* =====================  INIT  ===================== */
+document.getElementById("btnNeu").onclick = function(){ neu(); };
+document.getElementById("btnBons").onclick = function(){ openOverlay("overlayBons", "panelBons", renderBons); };
+document.getElementById("btnChange").onclick = function(){ openOverlay("overlayChange", "panelChange", updateChange); };
+document.getElementById("chgReceived").onkeyup = function(){ updateChange(); };
+document.getElementById("chgReceived").oninput = function(){ updateChange(); };
+
+/* Klick auf den abgedunkelten Hintergrund schliesst das jeweilige Overlay */
+document.getElementById("overlayBons").onclick   = function(e){ if (e.target === this) { closeOverlay("overlayBons"); } };
+document.getElementById("overlayChange").onclick = function(e){ if (e.target === this) { closeOverlay("overlayChange"); } };
+
+render();
+</script>
+</body>
+</html>
