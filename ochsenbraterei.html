@@ -41,9 +41,10 @@ html, body {
 }
 .column {
   display: inline-block; vertical-align: top;
-  width: 530px; max-width: 100%; margin: 0 8px; text-align: left;
+  width: 490px; max-width: 100%; margin: 0 4px; text-align: left;
 }
-@media screen and (max-width: 1140px) {
+/* 2 Spalten ab 1000px (iPad Air 2 Querformat = 1024px), sonst 1 Spalte */
+@media screen and (max-width: 999px) {
   .column { display: block; margin: 0 auto; }
 }
 
@@ -62,14 +63,14 @@ html, body {
 }
 .cell { display: table-cell; vertical-align: middle; }
 
-.c-title { width: 160px; font-size: 16px; line-height: 1.15;
+.c-title { width: 150px; font-size: 16px; line-height: 1.15;
   word-wrap: break-word; overflow-wrap: break-word; padding-left: 4px; }
-.c-price { width: 40px; font-size: 14px; color: #888; text-align: right; padding-right: 6px; }
-.c-btn   { width: 64px; text-align: center; }
+.c-price { width: 38px; font-size: 14px; color: #888; text-align: right; padding-right: 6px; }
+.c-btn   { width: 58px; text-align: center; }
 .c-btn.right { text-align: right; }
 .c-btn.left  { text-align: left; }
-.c-qty   { width: 35px; text-align: center; font-size: 16px; font-weight: bold; }
-.c-coupon { width: 138px; text-align: center; padding-left: 8px; }
+.c-qty   { width: 33px; text-align: center; font-size: 16px; font-weight: bold; }
+.c-coupon { width: 130px; text-align: center; padding-left: 8px; }
 
 .btn-pm {
   background: #6b7785; color: #ffffff; border: none;
@@ -80,7 +81,7 @@ html, body {
 .btn-hidden { visibility: hidden; }
 
 .coupon {
-  display: table-cell; width: 130px; height: 52px;
+  display: table-cell; width: auto; height: 52px;
   border: 1px dashed #cccccc; border-radius: 6px;
   text-align: center; vertical-align: middle;
   font-size: 14px; color: #555; padding: 4px;
